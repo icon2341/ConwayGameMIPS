@@ -1,0 +1,273 @@
+   1 0000               #
+   2 0000               # FILE:         $File$
+   3 0000               # AUTHOR:       Ashar Rahman, RIT, 2023
+   4 0000               #               
+   5 0000               #
+   6 0000               # DESCRIPTION:
+   7 0000               #	This file contains print_board function
+   8 0000               #
+   9 0000               
+  10 0000               #-------------------------------
+  11 0000               
+  12 0000               PRINT_CHAR = 11
+  13 0000               
+  14 0000               .globl print_board
+  15 0000               
+  16 0000               #
+  17 0000               # Name:         print_board
+  18 0000               # Description:  prints the board in the specified format
+  19 0000               #
+  20 0000               # Arguments:    $a0: Size of board
+  21 0000               #               $a1: a parameter block containing 3 values
+  22 0000               #                       - the address of rowArray_A
+  23 0000               #                       - the address of colArray_A
+  24 0000               #                       - the address of the colonySize_A
+  25 0000               #               $a2: a parameter block containing 3 values
+  26 0000               #                       - the address of rowArray_B
+  27 0000               #                       - the address of colArray_B
+  28 0000               #                       - the address of the colonySize_B
+  29 0000               # Returns:
+  30 0000               # Destroys:     $s0 $s1 ... $s7, $t0 $t1 ... $t7, $a0
+  31 0000               #
+  32 0000               
+  33 0000               print_board:
+  34 0000               					# push caller $s0-7 onto stack
+  35 0000 23BDFFD0		addi	$sp, $sp,-48
+  36 0004 AFBF002C		sw	$ra, -4+48($sp)
+  37 0008 AFB70028		sw	$s7, -8+48($sp)
+  38 000c AFB60024		sw	$s6, -12+48($sp)
+  39 0010 AFB50020		sw	$s5, -16+48($sp)
+  40 0014 AFB4001C		sw	$s4, -20+48($sp)
+  41 0018 AFB30018		sw	$s3, -24+48($sp)
+  42 001c AFB20014		sw	$s2, -28+48($sp)
+  43 0020 AFB10010		sw	$s1, -32+48($sp)
+  44 0024 AFB0000C		sw	$s0, -36+48($sp)
+  45 0028               
+  46 0028               
+  47 0028               print_top_border:
+  48 0028 00808021		move	$s0, $a0		# move board size into $s0
+  49 002c               
+  50 002c 3404002B		li	$a0, 43			# Load ASCII value of '+' into $a0
+  51 0030 3402000B		li	$v0, PRINT_CHAR		# System call for printing character
+  52 0034 0000000C		syscall
+  53 0038               
+  54 0038 34080000		li	$t0, 0			# pos counter
+  55 003c               
+  56 003c               print_top_border_loop:
+  57 003c 0110482A		slt	$t1, $t0, $s0		# check if pos <  boardsize
+  58 0040               					# if not, go to print_top_border_done
+  59 0040 11200005		beq	$t1, $zero, print_top_border_done
+  60 0044               
+  61 0044 3404002D		li	$a0, 45   		# Load ASCII value of '-' into $a0
+  62 0048 3402000B		li	$v0, PRINT_CHAR		# System call for printing character
+  63 004c 0000000C		syscall
+  64 0050               
+  65 0050 21080001		addi	$t0, $t0, 1		# increment $t0
+  66 0054 0800000F		j print_top_border_loop
+  67 0058               
+  68 0058               print_top_border_done:
+  69 0058 3404002B		li	$a0, 43			# Load ASCII value of '+' into $a0
+  70 005c 3402000B		li	$v0, PRINT_CHAR		# System call for printing character
+  71 0060 0000000C		syscall
+  72 0064               
+  73 0064 3404000A		li	$a0, 10			# ASCII for '\n'
+  74 0068 3402000B		li	$v0, PRINT_CHAR
+  75 006c 0000000C		syscall
+  76 0070               
+  77 0070               print_rows:
+  78 0070               					# load A params
+  79 0070 8CB40000		lw	$s4, 0($a1)		# rowArray_A
+  80 0074 8CB50004		lw	$s5, 4($a1)		# colArray_A
+  81 0078 8CB60008		lw	$s6, 8($a1)		# sizeOfA
+  82 007c               
+  83 007c               					# load B params
+  84 007c 8CD70000		lw	$s7, 0($a2)		# rowArray_B
+  85 0080 8CC80004		lw	$t0, 4($a2)		# colArray_B
+  86 0084 8CC90008		lw	$t1, 8($a2)		# sizeOfB
+  87 0088               
+  88 0088               					# row Counter
+  89 0088 34110000		li	$s1, 0
+  90 008c               
+  91 008c               print_row_loop:
+  92 008c 0230502A		slt	$t2, $s1, $s0		# rowCounter < boardSize
+  93 0090               					# if not, end rows
+  94 0090 11400042		beq	$t2, $zero, print_bottom_border	
+  95 0094               
+  96 0094 3404007C		li	$a0, 124		# ASCII for '|' to print
+  97 0098 3402000B		li	$v0, PRINT_CHAR
+  98 009c 0000000C		syscall
+  99 00a0               
+ 100 00a0 34120000		li	$s2, 0			# col counter
+ 101 00a4               
+ 102 00a4               print_col_loop:
+ 103 00a4 0250502A		slt	$t2, $s2, $s0		# check if column reached end
+ 104 00a8 11400034		beq	$t2, $zero, end_print_column_loop
+ 105 00ac               
+ 106 00ac 34130000		li	$s3, 0			# A cursor
+ 107 00b0               
+ 108 00b0               check_A_loop:
+ 109 00b0 0276502A		slt	$t2, $s3, $s6		# check to see reached end of A
+ 110 00b4 11400010		beq	$t2, $zero, check_B	# if so, check B
+ 111 00b8               
+ 112 00b8 34010004		mul	$t3, $s3, 4		# get array byte  offset
+     00bc 02610018
+     00c0 00005812
+ 113 00c4 01745820		add	$t3, $t3, $s4		# add offset to row pointer
+ 114 00c8               
+ 115 00c8 34010004		mul	$t4, $s3, 4		# do the same here for columns
+     00cc 02610018
+     00d0 00006012
+ 116 00d4 01956020		add	$t4, $t4, $s5
+ 117 00d8               
+ 118 00d8 8D6B0000		lw	$t3, 0($t3)  		# get row value of A using offset
+ 119 00dc 8D8C0000		lw	$t4, 0($t4)		# get col value of A
+ 120 00e0 11710001		beq	$t3, $s1, is_A_row	# if A row == current row, check col
+ 121 00e4 0800003C		j	next_A			# else go to next A
+ 122 00e8               
+ 123 00e8               is_A_row:
+ 124 00e8 11920016		beq	$t4, $s2, print_A	# if col also == then print
+ 125 00ec 0800003C		j	next_A			# otherwise next A
+ 126 00f0               
+ 127 00f0               next_A:
+ 128 00f0 22730001		addi	$s3, $s3, 1		# incr A cursor
+ 129 00f4 0800002C		j	check_A_loop
+ 130 00f8               
+ 131 00f8               check_B:
+ 132 00f8 34130000		li	$s3, 0			# init B cursor to zero
+ 133 00fc               
+ 134 00fc               check_B_loop:
+ 135 00fc 0269502A		slt	$t2, $s3, $t1		# check to see if reached end of B
+ 136 0100               					# if so, print space
+ 137 0100 11400018		beq	$t2, $zero, print_space	
+ 138 0104               
+ 139 0104 34010004		mul	$t5, $s3, 4		# get array byte offset for B
+     0108 02610018
+     010c 00006812
+ 140 0110 01B76820		add	$t5, $t5, $s7		# add offset to B row pointer
+ 141 0114               
+ 142 0114 34010004		mul	$t6, $s3, 4		# same for B columns
+     0118 02610018
+     011c 00007012
+ 143 0120 01C87020		add	$t6, $t6, $t0
+ 144 0124               
+ 145 0124 8DAD0000		lw	$t5, 0($t5)		# get row value of B using offset
+ 146 0128 8DCE0000		lw	$t6, 0($t6)		# get col value of B
+ 147 012c 11B10001		beq	$t5, $s1, is_B_row	# if B row == current row, check col
+ 148 0130 0800004F		j	next_B			# else go to next B
+ 149 0134               
+ 150 0134               is_B_row:
+ 151 0134               					# if col also == then print B
+ 152 0134 11D20007		beq		$t6, $s2, print_B
+ 153 0138 0800004F		j	next_B			# otherwise next B
+ 154 013c               
+ 155 013c               next_B:
+ 156 013c 22730001		addi	$s3, $s3, 1		# increment B cursor
+ 157 0140 0800003F		j	check_B_loop
+ 158 0144               
+ 159 0144               print_A:
+ 160 0144 34040041		li	$a0, 'A'		# ASCII value for 'A'
+ 161 0148 3402000B		li	$v0, PRINT_CHAR
+ 162 014c 0000000C		syscall
+ 163 0150 0800005D		j	print_next_col
+ 164 0154               
+ 165 0154               print_B:
+ 166 0154 34040042		li	$a0, 'B'		# ASCII value for 'B'
+ 167 0158 3402000B		li	$v0, PRINT_CHAR
+ 168 015c 0000000C		syscall
+ 169 0160 0800005D		j	print_next_col
+ 170 0164               
+ 171 0164               print_space:
+ 172 0164 34040020		li	$a0, ' '		# ASCII value for space
+ 173 0168 3402000B		li	$v0, PRINT_CHAR
+ 174 016c 0000000C		syscall
+ 175 0170 0800005D		j	print_next_col
+ 176 0174               
+ 177 0174               print_next_col:
+ 178 0174 22520001		addi	$s2, $s2, 1		# increment column counter
+ 179 0178 08000029		j	print_col_loop
+ 180 017c               
+ 181 017c               end_print_column_loop:
+ 182 017c 3404007C		li	$a0, 124		# ASCII for '|' to end the row
+ 183 0180 3402000B		li	$v0, PRINT_CHAR
+ 184 0184 0000000C		syscall
+ 185 0188               
+ 186 0188 3404000A		li	$a0, 10 		# ASCII for '\n'
+ 187 018c 3402000B		li	$v0, PRINT_CHAR
+ 188 0190 0000000C		syscall
+ 189 0194               
+ 190 0194 22310001		addi	$s1, $s1, 1		# increment row counter
+ 191 0198 08000023		j	print_row_loop
+ 192 019c               
+ 193 019c               print_bottom_border:
+ 194 019c               
+ 195 019c 3404002B		li	$a0, 43			# Load ASCII value of '+' into $a0
+ 196 01a0 3402000B		li	$v0, PRINT_CHAR		# System call for printing character
+ 197 01a4 0000000C		syscall
+ 198 01a8               
+ 199 01a8 34080000		li	$t0, 0			# Position counter
+ 200 01ac               
+ 201 01ac               print_bottom_border_loop:
+ 202 01ac 0110482A		slt	$t1, $t0, $s0		# Check if pos < boardsize
+ 203 01b0                                           		# If not, go to print_bottom...
+ 204 01b0 11200005		beq	$t1, $zero, print_bottom_border_done
+ 205 01b4               
+ 206 01b4 3404002D		li	$a0, 45			# Load ASCII value of '-' into $a0
+ 207 01b8 3402000B		li	$v0, PRINT_CHAR		# System call for printing character
+ 208 01bc 0000000C		syscall
+ 209 01c0               
+ 210 01c0 21080001		addi	$t0, $t0, 1		# Increment $t0
+ 211 01c4 0800006B		j	print_bottom_border_loop
+ 212 01c8               
+ 213 01c8               print_bottom_border_done:
+ 214 01c8 3404002B		li	$a0, 43			# Load ASCII value of '+' into $a0
+ 215 01cc 3402000B		li	$v0, PRINT_CHAR 	# System call for printing character
+ 216 01d0 0000000C		syscall
+ 217 01d4               
+ 218 01d4 3404000A		li	$a0, 10			# ASCII for '\n'
+ 219 01d8 3402000B		li	$v0, PRINT_CHAR
+ 220 01dc 0000000C		syscall
+ 221 01e0               
+ 222 01e0               
+ 223 01e0               print_board_done:
+ 224 01e0 8FBF002C		lw	$ra, -4+48($sp)
+ 225 01e4 8FB70028		lw	$s7, -8+48($sp)
+ 226 01e8 8FB60024		lw	$s6, -12+48($sp)
+ 227 01ec 8FB50020		lw	$s5, -16+48($sp)
+ 228 01f0 8FB4001C		lw	$s4, -20+48($sp)
+ 229 01f4 8FB30018		lw	$s3, -24+48($sp)
+ 230 01f8 8FB20014		lw	$s2, -28+48($sp)
+ 231 01fc 8FB10010		lw	$s1, -32+48($sp)
+ 232 0200 8FB0000C		lw	$s0, -36+48($sp)
+ 233 0204 23BD0030		addi	$sp, $sp, 48
+ 234 0208               	
+ 235 0208 03E00008		jr $ra
+ 236 020c               
+
+
+          Name            F  Value   M V Sect.                               References
+------------------------  - -------- - - ----- -----------------------------------------------------------------------
+PRINT_CHAR                  0000000B =         @   12,  51,  62,  70,  74,  97, 161, 167, 173, 183, 187, 196, 207, 215
+                                               @  219
+check_A_loop                000000B0 R   text  @  108, 129
+check_B                     000000F8 R   text  @  110, 131
+check_B_loop                000000FC R   text  @  134, 157
+end_print_column_loop       0000017C R   text  @  104, 181
+is_A_row                    000000E8 R   text  @  120, 123
+is_B_row                    00000134 R   text  @  147, 150
+next_A                      000000F0 R   text  @  121, 125, 127
+next_B                      0000013C R   text  @  148, 153, 155
+print_A                     00000144 R   text  @  124, 159
+print_B                     00000154 R   text  @  152, 165
+print_board                 00000000 R G text  @   14,  33
+print_board_done            000001E0 R   text  @  223
+print_bottom_border         0000019C R   text  @   94, 193
+print_bottom_border_done    000001C8 R   text  @  204, 213
+print_bottom_border_loop    000001AC R   text  @  201, 211
+print_col_loop              000000A4 R   text  @  102, 179
+print_next_col              00000174 R   text  @  163, 169, 175, 177
+print_row_loop              0000008C R   text  @   91, 191
+print_rows                  00000070 R   text  @   77
+print_space                 00000164 R   text  @  137, 171
+print_top_border            00000028 R   text  @   47
+print_top_border_done       00000058 R   text  @   59,  68
+print_top_border_loop       0000003C R   text  @   56,  66

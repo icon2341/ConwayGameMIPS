@@ -1,0 +1,119 @@
+Load map
+Module entry point: 0x0040066c
+
+Module:  Colony.obj
+ Text segment:  932 bytes, load point 0x00400000
+ Data segment:  944 bytes, load point 0x10000000
+ Symbols:
+                                       Name Section Mode    Value
+                          board_size_prompt   Data   R   0x10000207
+                                       main   Text   RG  0x00400000
+                     check_if_location_used   Text   R   0x004001cc
+           bad_generations_prompt_user_loop   Text   R   0x004000d4
+                       alive_cells_B_prompt   Data   R   0x1000026c
+                             program_banner   Data   R   0x10000365
+                 illegal_generations_prompt   Data   R   0x100002dc
+                  get_user_input_board_size   Text   R   0x00400034
+                  illegal_board_size_prompt   Data   R   0x100002b2
+                                      space   Data   R   0x10000205
+                         generations_prompt   Data   R   0x1000021b
+                             colony_A_block   Data   R   0x10000000
+                                   READ_INT          A   0x00000005
+                 get_user_input_generations   Text   R   0x0040009c
+                   check_if_location_used_B   Text   R   0x004002fc
+  get_user_input_live_cell_locations_B_done   Text   R   0x0040036c
+                           store_location_A   Text   R   0x00400204
+                           store_location_B   Text   R   0x00400334
+               get_total_number_cells_board   Text   R   0x00400104
+                             double_newline   Data   R   0x10000202
+                check_column_within_board_B   Text   R   0x004002f4
+                               colonySize_A   Data   R   0x10000108
+                               colonySize_B   Data   R   0x100001fc
+  get_user_input_live_cell_locations_A_done   Text   R   0x0040023c
+                     check_row_within_board   Text   R   0x004001ac
+                               PRINT_STRING          A   0x00000004
+         bad_alive_cells_A_prompt_user_loop   Text   R   0x00400140
+         bad_alive_cells_B_prompt_user_loop   Text   R   0x00400270
+                             colony_B_block   Data   R   0x1000000c
+                       alive_cells_A_prompt   Data   R   0x10000241
+                  check_column_within_board   Text   R   0x004001c4
+                                    newline   Data   R   0x10000200
+        validate_row_nonnegative_location_A   Text   R   0x004001a0
+                                 rowArray_A   Data   R   0x10000018
+        validate_row_nonnegative_location_B   Text   R   0x004002d0
+                                 rowArray_B   Data   R   0x1000010c
+                           invalid_location   Text   R   0x00400388
+            bad_board_size_prompt_user_loop   Text   R   0x0040006c
+       get_user_input_live_cell_locations_A   Text   R   0x0040016c
+       get_user_input_live_cell_locations_B   Text   R   0x0040029c
+                        BOARDSIZE_LEGAL_MAX          A   0x0000001e
+                        BOARDSIZE_LEGAL_MIN          A   0x00000004
+                   check_row_within_board_B   Text   R   0x004002dc
+                     start_locations_prompt   Data   R   0x10000297
+                        illegal_alive_cells   Data   R   0x10000311
+                                  main_done   Text   R   0x00400398
+                    illegal_point__location   Data   R   0x10000345
+                                  PRINT_INT          A   0x00000001
+                       GENERATION_LEGAL_MAX          A   0x00000014
+  get_user_input_live_cell_locations_B_loop   Text   R   0x004002b0
+                 validate_column_location_A   Text   R   0x004001b8
+                 validate_column_location_B   Text   R   0x004002e8
+               get_user_input_alive_cells_A   Text   R   0x0040010c
+               get_user_input_alive_cells_B   Text   R   0x0040023c
+  get_user_input_live_cell_locations_A_loop   Text   R   0x00400180
+                                 colArray_A   Data   R   0x10000090
+                                 colArray_B   Data   R   0x10000184
+
+Module:  is_location_taken.obj
+ Text segment:  184 bytes, load point 0x004003a4
+ Symbols:
+                                       Name Section Mode    Value
+                        check_colony_B_loop   Text   R   0x00400408
+                        check_colony_A_loop   Text   R   0x004003c4
+                          is_location_taken   Text   RG  0x004003a4
+                     return_from_subroutine   Text   R   0x00400448
+                         location_not_taken   Text   R   0x0040043c
+              check_colony_A_columns_branch   Text   R   0x004003f4
+                             check_colony_B   Text   R   0x004003f8
+                             location_taken   Text   R   0x00400444
+              check_colony_B_columns_branch   Text   R   0x00400438
+
+Module:  print_board.obj
+ Text segment:  524 bytes, load point 0x0040045c
+ Symbols:
+                                       Name Section Mode    Value
+                               check_A_loop   Text   R   0x0040050c
+                                    check_B   Text   R   0x00400554
+                             print_next_col   Text   R   0x004005d0
+                           print_board_done   Text   R   0x0040063c
+                             print_row_loop   Text   R   0x004004e8
+                      end_print_column_loop   Text   R   0x004005d8
+                                     next_A   Text   R   0x0040054c
+                                     next_B   Text   R   0x00400598
+                   print_bottom_border_loop   Text   R   0x00400608
+                             print_col_loop   Text   R   0x00400500
+                      print_top_border_loop   Text   R   0x00400498
+                                print_space   Text   R   0x004005c0
+                                   is_B_row   Text   R   0x00400590
+                                    print_A   Text   R   0x004005a0
+                                    print_B   Text   R   0x004005b0
+                           print_top_border   Text   R   0x00400484
+                        print_bottom_border   Text   R   0x004005f8
+                                   is_A_row   Text   R   0x00400544
+                                 PRINT_CHAR          A   0x0000000b
+                                 print_rows   Text   R   0x004004cc
+                   print_bottom_border_done   Text   R   0x00400624
+                               check_B_loop   Text   R   0x00400558
+                      print_top_border_done   Text   R   0x004004b4
+                                print_board   Text   RG  0x0040045c
+
+Module:  r2k_startup.obj
+ Text segment:  64 bytes, load point 0x00400668
+ Data segment:  8 bytes, load point 0x100003b0
+ Symbols:
+                                       Name Section Mode    Value
+                                __heap_size   Data   RG  0x100003b4
+                                  SYS_EXIT2          A   0x00000011
+                                   SYS_SBRK          A   0x00000009
+                             __r2k__entry__   Text   RG  0x0040066c
+                                 __heap_ptr   Data   RG  0x100003b0

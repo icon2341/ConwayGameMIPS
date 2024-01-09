@@ -1,0 +1,666 @@
+   1 0000               #
+   2 0000               # FILE:         $File$
+   3 0000               # AUTHOR:       Ashar Rahman, RIT, 2023
+   4 0000               #
+   5 0000               # DESCRIPTION:
+   6 0000               #	This is the implementation for the Final Project Where
+   7 0000               #	Conways Game of Life is implemented.
+   8 0000               #
+   9 0000               # ARGUMENTS:
+  10 0000               #	None
+  11 0000               #
+  12 0000               # INPUT:
+  13 0000               # 	User will provide The board size, number of generations to run and
+  14 0000               #	initial set of alive cells for each colony.
+  15 0000               #
+  16 0000               # OUTPUT:
+  17 0000               #	Various Error Messages and the board with each generation.
+  18 0000               #
+  19 0000               #
+  20 0000               # REVISION HISTORY:
+  21 0000               #
+  22 0000               
+  23 0000               #
+  24 0000               # Numeric Constantss
+  25 0000               #
+  26 0000               
+  27 0000               
+  28 0000               PRINT_STRING = 4
+  29 0000               READ_INT = 5
+  30 0000               PRINT_INT = 1
+  31 0000               BOARDSIZE_LEGAL_MIN = 4
+  32 0000               BOARDSIZE_LEGAL_MAX = 30
+  33 0000               GENERATION_LEGAL_MAX = 20
+  34 0000               
+  35 0000               #
+  36 0000               # DATA AREAS
+  37 0000               #
+  38 0000               	.data
+  39 0000               	.align 2  			# word boundaries
+  40 0000               
+  41 0000               colony_A_block:
+  42 0000 00000018		.word rowArray_A
+  43 0004 00000090		.word colArray_A
+  44 0008 00000000		.word 0
+  45 000c               
+  46 000c               colony_B_block:
+  47 000c 0000010C		.word rowArray_B
+  48 0010 00000184		.word colArray_B
+  49 0014 00000000		.word 0
+  50 0018               
+  51 0018               rowArray_A:
+  52 0018 00000000		.space 120   			# Allocate space for row indices
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  53 0090               
+  54 0090               colArray_A:
+  55 0090 00000000		.space 120   			# Allocate space for column indices
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  56 0108               
+  57 0108               colonySize_A:
+  58 0108 00000000		.word 0				# counter for the number of live cells
+  59 010c               
+  60 010c               rowArray_B:
+  61 010c 00000000		.space 120   			# Allocate space for row indices
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  62 0184               
+  63 0184               colArray_B:
+  64 0184 00000000		.space 120   			# Allocate space for column indices
+          00000000
+          00000000
+          00000000
+          00000000
+          00000000
+  65 01fc               
+  66 01fc               colonySize_B:
+  67 01fc 00000000		.word 0				# counter for the number of live cells
+  68 0200               
+  69 0200               	.align 0
+  70 0200               
+  71 0200               newline:
+  72 0200 0A00    		.asciiz	"\n"
+  73 0202               
+  74 0202               double_newline:
+  75 0202 0A0A00  		.asciiz	"\n\n"
+  76 0205               
+  77 0205               space:	
+  78 0205 2000    		.asciiz	" "
+  79 0207               
+  80 0207               board_size_prompt:
+  81 0207 0A456E74		.asciiz "\nEnter board size: "
+          65722062
+          6F617264
+          2073697A
+          653A2000
+  82 021b               
+  83 021b               generations_prompt:
+  84 021b 0A456E74		.asciiz "\nEnter number of generations to run: "
+          6572206E
+          756D6265
+          72206F66
+          2067656E
+          65726174
+  85 0241               
+  86 0241               alive_cells_A_prompt:
+  87 0241 0A456E74		.asciiz "\nEnter number of live cells for colony A: "
+          6572206E
+          756D6265
+          72206F66
+          206C6976
+          65206365
+  88 026c               
+  89 026c               alive_cells_B_prompt:
+  90 026c 0A456E74		.asciiz "\nEnter number of live cells for colony B: "
+          6572206E
+          756D6265
+          72206F66
+          206C6976
+          65206365
+  91 0297               
+  92 0297               start_locations_prompt:
+  93 0297 0A537461		.asciiz "\nStart entering locations\n"
+          72742065
+          6E746572
+          696E6720
+          6C6F6361
+          74696F6E
+  94 02b2               
+  95 02b2               illegal_board_size_prompt:
+  96 02b2 0A574152		.asciiz "\nWARNING: illegal board size, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C20626F
+          61726420
+  97 02dc               
+  98 02dc               illegal_generations_prompt:
+  99 02dc 0A574152		.asciiz "\nWARNING: illegal number of generations, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C206E75
+          6D626572
+ 100 0311               
+ 101 0311               illegal_alive_cells:
+ 102 0311 0A574152		.asciiz "\nWARNING: illegal number of live cells, try again: "
+          4E494E47
+          3A20696C
+          6C656761
+          6C206E75
+          6D626572
+ 103 0345               
+ 104 0345               illegal_point__location:
+ 105 0345 0A455252		.asciiz "\nERROR: illegal point location\n"
+          4F523A20
+          696C6C65
+          67616C20
+          706F696E
+          74206C6F
+ 106 0365               
+ 107 0365               program_banner:
+ 108 0365 0A2A2A2A		.asciiz "\n**********************\n****    Colony    ****\n**********************\n"
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A2A
+          2A2A2A0A
+ 109 03ac               
+ 110 03ac               #
+ 111 03ac               # CODE AREAS
+ 112 03ac               #
+ 113 0000               	.text
+ 114 0000               	.align 2
+ 115 0000               
+ 116 0000               	.globl main
+ 117 0000               	.globl is_location_taken
+ 118 0000               	.globl print_board
+ 119 0000               
+ 120 0000               main:
+ 121 0000 23BDFFFC		addi	$sp,$sp,-4		# allocate for the return address
+ 122 0004 AFBF0000		sw	$ra,($sp)		# store the ra on the stack
+ 123 0008               
+ 124 0008 34020004		li	$v0,PRINT_STRING
+ 125 000c 3C040000		la	$a0,program_banner
+     0010 34840000
+ 126 0014 0000000C		syscall				# print program
+ 127 0018               
+ 128 0018 3C080000		la	$t0, colony_A_block
+     001c 35080000
+ 129 0020 34090000		li	$t1, 0
+ 130 0024 AD090008		sw	$t1, 8($t0)
+ 131 0028 3C080000		la	$t0, colony_B_block
+     002c 35080000
+ 132 0030 AD090008		sw	$t1, 8($t0)
+ 133 0034               
+ 134 0034               
+ 135 0034               get_user_input_board_size:
+ 136 0034 34020004		li	$v0, PRINT_STRING
+ 137 0038 3C040000		la	$a0, board_size_prompt
+     003c 34840000
+ 138 0040 0000000C		syscall				# print board size prompt
+ 139 0044               
+ 140 0044 34020005		li	$v0, READ_INT
+ 141 0048 0000000C		syscall				# read board size
+ 142 004c 00408021		move	$s0, $v0		# store board size in $s0
+ 143 0050               
+ 144 0050               					# compare passed board size to values
+ 145 0050               
+ 146 0050 340B0004		li	$t3, BOARDSIZE_LEGAL_MIN
+ 147 0054 020B402A		slt 	$t0, $s0, $t3
+ 148 0058 3409001E		li	$t1, 30
+ 149 005c 0130502A		slt	$t2, $t1, $s0
+ 150 0060               
+ 151 0060               					# check to see if board_size within
+ 152 0060               					# 5 and 31 (exclusive)
+ 153 0060               
+ 154 0060 15000002		bne	$t0, $zero, bad_board_size_prompt_user_loop
+ 155 0064 15400001		bne	$t2, $zero, bad_board_size_prompt_user_loop
+ 156 0068               
+ 157 0068 08000027		j get_user_input_generations
+ 158 006c               
+ 159 006c               bad_board_size_prompt_user_loop:
+ 160 006c 34020004		li	$v0, PRINT_STRING
+ 161 0070 3C040000		la	$a0, illegal_board_size_prompt
+     0074 34840000
+ 162 0078 0000000C		syscall			# print illegal board size prompt
+ 163 007c               
+ 164 007c 34020005		li	$v0, READ_INT
+ 165 0080 0000000C		syscall				# read board size
+ 166 0084 00408021		move	$s0, $v0		# store board size in $s0
+ 167 0088               
+ 168 0088 020B402A		slt 	$t0, $s0, $t3
+ 169 008c 3409001E		li	$t1, 30
+ 170 0090 0130502A		slt	$t2, $t1, $s0
+ 171 0094               
+ 172 0094               					# check to see if board_size within
+ 173 0094               					# 5 and 31 (exclusive)
+ 174 0094               
+ 175 0094 1500FFF5		bne	$t0, $zero, bad_board_size_prompt_user_loop
+ 176 0098 1540FFF4		bne	$t2, $zero, bad_board_size_prompt_user_loop
+ 177 009c               
+ 178 009c               get_user_input_generations:
+ 179 009c 34020004		li	$v0, PRINT_STRING
+ 180 00a0 3C040000		la	$a0, generations_prompt
+     00a4 34840000
+ 181 00a8 0000000C		syscall				# print generations prompt
+ 182 00ac               
+ 183 00ac 34020005		li	$v0, READ_INT
+ 184 00b0 0000000C		syscall				# read generations
+ 185 00b4 00408821		move	$s1, $v0		# store generations in $s1
+ 186 00b8               
+ 187 00b8               					# compare passed generations to values
+ 188 00b8               
+ 189 00b8 340B0000		li	$t3, 0
+ 190 00bc 022B402A		slt 	$t0, $s1, $t3 
+ 191 00c0 34090014		li	$t1, GENERATION_LEGAL_MAX
+ 192 00c4 0131502A		slt	$t2, $t1, $s1
+ 193 00c8               
+ 194 00c8               					# check to see if generations within
+ 195 00c8               					# 1 and 21 (exclusive)
+ 196 00c8               
+ 197 00c8 15000002		bne	$t0, $zero, bad_generations_prompt_user_loop
+ 198 00cc 15400001		bne	$t2, $zero, bad_generations_prompt_user_loop
+ 199 00d0               
+ 200 00d0 08000041		j get_total_number_cells_board
+ 201 00d4               
+ 202 00d4               bad_generations_prompt_user_loop:
+ 203 00d4 34020004		li	$v0, PRINT_STRING
+ 204 00d8 3C040000		la	$a0, illegal_generations_prompt
+     00dc 34840000
+ 205 00e0 0000000C		syscall				# print illegal generations prompt
+ 206 00e4               
+ 207 00e4 34020005		li	$v0, READ_INT
+ 208 00e8 0000000C		syscall				# read generations
+ 209 00ec 00408821		move	$s1, $v0		# store generations in $s1
+ 210 00f0               
+ 211 00f0 022B402A		slt 	$t0, $s1, $t3
+ 212 00f4 34090014		li	$t1, GENERATION_LEGAL_MAX
+ 213 00f8 0131502A		slt	$t2, $t1, $s1
+ 214 00fc               
+ 215 00fc               					# check to see if generations within
+ 216 00fc               					# 1 and 21 (exclusive)
+ 217 00fc               
+ 218 00fc 1500FFF5		bne	$t0, $zero, bad_generations_prompt_user_loop
+ 219 0100 1540FFF4		bne	$t2, $zero, bad_generations_prompt_user_loop
+ 220 0104               
+ 221 0104               get_total_number_cells_board:
+ 222 0104               					# multiply board size by board size
+ 223 0104               					# to get total number of cells
+ 224 0104 02100018		mul	$s2, $s0, $s0
+     0108 00009012
+ 225 010c               
+ 226 010c               get_user_input_alive_cells_A:
+ 227 010c 34020004		li	$v0, PRINT_STRING
+ 228 0110 3C040000		la	$a0, alive_cells_A_prompt
+     0114 34840000
+ 229 0118 0000000C		syscall				# print alive cells A prompt
+ 230 011c               
+ 231 011c 34020005		li	$v0, READ_INT
+ 232 0120 0000000C		syscall				# read alive cells A
+ 233 0124 00409821		move	$s3, $v0		# store alive cells A in $s3
+ 234 0128               
+ 235 0128               					# compare passed alive cells A to values
+ 236 0128               
+ 237 0128 340B0000		li	$t3, 0
+ 238 012c 026B402A		slt 	$t0, $s3, $t3
+ 239 0130 0253482A		slt	$t1, $s2, $s3
+ 240 0134               
+ 241 0134               					# check to see if alive cells A within
+ 242 0134               					# 0 and total number of cells on board
+ 243 0134               
+ 244 0134 15000002		bne	$t0, $zero, bad_alive_cells_A_prompt_user_loop
+ 245 0138 15200001		bne	$t1, $zero, bad_alive_cells_A_prompt_user_loop
+ 246 013c               
+ 247 013c 0800005B		j get_user_input_live_cell_locations_A
+ 248 0140               
+ 249 0140               bad_alive_cells_A_prompt_user_loop:
+ 250 0140 34020004		li	$v0, PRINT_STRING
+ 251 0144 3C040000		la	$a0, illegal_alive_cells
+     0148 34840000
+ 252 014c 0000000C		syscall				# print illegal alive cells prompt
+ 253 0150               
+ 254 0150 34020005		li	$v0, READ_INT
+ 255 0154 0000000C		syscall				# read alive cells A
+ 256 0158 00409821		move	$s3, $v0		# store alive cells A in $s3
+ 257 015c               
+ 258 015c 026B402A		slt 	$t0, $s3, $t3
+ 259 0160 0253482A		slt	$t1, $s2, $s3
+ 260 0164               
+ 261 0164               					# check to see if alive cells A within
+ 262 0164               					# 0 and total number of cells on board
+ 263 0164               
+ 264 0164 1500FFF6		bne	$t0, $zero, bad_alive_cells_A_prompt_user_loop
+ 265 0168 1520FFF5		bne	$t1, $zero, bad_alive_cells_A_prompt_user_loop
+ 266 016c               
+ 267 016c               get_user_input_live_cell_locations_A:
+ 268 016c 34020004		li	$v0, PRINT_STRING
+ 269 0170 3C040000		la	$a0, start_locations_prompt
+     0174 34840000
+ 270 0178 0000000C		syscall                 	# print start locations prompt
+ 271 017c               
+ 272 017c 34140000		li	$s4, 0             	# counter for the number of live cells
+ 273 0180               
+ 274 0180               get_user_input_live_cell_locations_A_loop:
+ 275 0180               					# check if our collected number of
+ 276 0180               					# cells is equal to the number of
+ 277 0180               					# cells we want to collect
+ 278 0180 0293482A		slt	$t1, $s4, $s3
+ 279 0184 1120002D		beq	$t1, $zero, get_user_input_live_cell_locations_A_done
+ 280 0188               
+ 281 0188 34020005		li	$v0, READ_INT
+ 282 018c 0000000C		syscall				# read row
+ 283 0190 00404021		move	$t0, $v0		# store row in $t0
+ 284 0194               
+ 285 0194 34020005		li	$v0, READ_INT
+ 286 0198 0000000C		syscall				# read column
+ 287 019c 00404821		move	$t1, $v0		# store column in $t1
+ 288 01a0               
+ 289 01a0               validate_row_nonnegative_location_A:
+ 290 01a0 0100502A		slt	$t2, $t0, $zero		# verify that row is non-negative
+ 291 01a4               
+ 292 01a4               					# if so, continue checks, else
+ 293 01a4               					# terminate
+ 294 01a4 11400001		beq	$t2, $zero, check_row_within_board
+ 295 01a8 080000E2		j	invalid_location
+ 296 01ac               
+ 297 01ac               check_row_within_board:
+ 298 01ac               					# check that row index is less than
+ 299 01ac               					# board length
+ 300 01ac 0110502A		slt	$t2, $t0, $s0
+ 301 01b0               					# if so, continue checks, else
+ 302 01b0               					# terminate
+ 303 01b0 11400075		beq	$t2, $zero, invalid_location
+ 304 01b4 0800006E		j	validate_column_location_A
+ 305 01b8               
+ 306 01b8               validate_column_location_A:
+ 307 01b8 0120502A		slt	$t2, $t1, $zero		# verify that col is non-negative
+ 308 01bc               
+ 309 01bc               					# if so, continue checks, else
+ 310 01bc               					# terminate
+ 311 01bc 11400001		beq	$t2, $zero, check_column_within_board
+ 312 01c0 080000E2		j	invalid_location
+ 313 01c4               
+ 314 01c4               check_column_within_board:
+ 315 01c4               					# check that col index is less than
+ 316 01c4               					# board length
+ 317 01c4 0130502A		slt	$t2, $t1, $s0
+ 318 01c8               					# if so, continue checks, else
+ 319 01c8               					# terminate
+ 320 01c8 1140006F		beq	$t2, $zero, invalid_location
+ 321 01cc               
+ 322 01cc               check_if_location_used:
+ 323 01cc 23BDFFF8	    addi    $sp, $sp, -8      		# Allocate stack space for 2 registers
+ 324 01d0 AFA80000	    sw      $t0, 0($sp)       		# Save $t0 on the stack
+ 325 01d4 AFA90004	    sw      $t1, 4($sp)       		# Save $t1 on the stack
+ 326 01d8               
+ 327 01d8 01002021	    move    $a0, $t0          		# Row to check
+ 328 01dc 01202821	    move    $a1, $t1          		# Column to check
+ 329 01e0 3C060000	    la      $a2, colony_A_block   	# Address of colony_A_block
+     01e4 34C60000
+ 330 01e8 3C070000	    la      $a3, colony_B_block   	# Address of colony_B_block
+     01ec 34E70000
+ 331 01f0               
+ 332 01f0 0C000000	    jal     is_location_taken
+ 333 01f4               
+ 334 01f4 8FA80000	    lw      $t0, 0($sp)       		# Restore $t0
+ 335 01f8 8FA90004	    lw      $t1, 4($sp)       		# Restore $t1
+ 336 01fc 23BD0008	    addi    $sp, $sp, 8       		# Deallocate stack space
+ 337 0200               
+ 338 0200 14400061	    bne     $v0, $zero, invalid_location
+ 339 0204               
+ 340 0204               store_location_A:
+ 341 0204 3C0C0000		la	$t4, colony_A_block
+     0208 358C0000
+ 342 020c 8D8D0000		lw	$t5, 0($t4)		# Load address of rowArray_A
+ 343 0210 8D8E0004		lw	$t6, 4($t4)		# Load address of colArray_A
+ 344 0214               
+ 345 0214 34010004		mul	$t2, $s4, 4		# multiply $s4 by 4 to get the offset
+     0218 02810018
+     021c 00005012
+ 346 0220 01AA5820		add	$t3, $t5, $t2		# add the offset to the base address
+ 347 0224 01CA7820		add	$t7, $t6, $t2		# add the offset to the base address
+ 348 0228 AD680000		sw	$t0, 0($t3)		# store the row
+ 349 022c ADE90000		sw	$t1, 0($t7)		# store the column
+ 350 0230               
+ 351 0230 22940001		addi	$s4, $s4, 1		# increment the number of cells
+ 352 0234 AD940008		sw	$s4, 8($t4)		# store the number of cells
+ 353 0238               
+ 354 0238 08000060		j	get_user_input_live_cell_locations_A_loop
+ 355 023c               
+ 356 023c               get_user_input_live_cell_locations_A_done:
+ 357 023c               
+ 358 023c               get_user_input_alive_cells_B:
+ 359 023c 34020004		li	$v0, PRINT_STRING
+ 360 0240 3C040000		la	$a0, alive_cells_B_prompt
+     0244 34840000
+ 361 0248 0000000C		syscall				# print alive cells B prompt
+ 362 024c               
+ 363 024c 34020005		li	$v0, READ_INT
+ 364 0250 0000000C		syscall				# read alive cells B
+ 365 0254 00409821		move	$s3, $v0		# store alive cells B in $s3
+ 366 0258               
+ 367 0258               					# compare passed alive cells B to values
+ 368 0258               
+ 369 0258 340B0000		li	$t3, 0
+ 370 025c 026B402A		slt 	$t0, $s3, $t3
+ 371 0260 0253482A		slt	$t1, $s2, $s3
+ 372 0264               
+ 373 0264               					# check to see if alive cells B within
+ 374 0264               					# 0 and total number of cells on board
+ 375 0264               
+ 376 0264 15000002		bne	$t0, $zero, bad_alive_cells_B_prompt_user_loop
+ 377 0268 15200001		bne	$t1, $zero, bad_alive_cells_B_prompt_user_loop
+ 378 026c               
+ 379 026c 080000A7		j get_user_input_live_cell_locations_B
+ 380 0270               
+ 381 0270               bad_alive_cells_B_prompt_user_loop:
+ 382 0270 34020004		li	$v0, PRINT_STRING
+ 383 0274 3C040000		la	$a0, illegal_alive_cells
+     0278 34840000
+ 384 027c 0000000C		syscall				# print illegal alive cells prompt
+ 385 0280               
+ 386 0280 34020005		li	$v0, READ_INT
+ 387 0284 0000000C		syscall				# read alive cells B
+ 388 0288 00409821		move	$s3, $v0		# store alive cells B in $s3
+ 389 028c               
+ 390 028c 026B402A		slt 	$t0, $s3, $t3
+ 391 0290 0253482A		slt	$t1, $s2, $s3
+ 392 0294               
+ 393 0294               					# check to see if alive cells B within
+ 394 0294               					# 0 and total number of cells on board
+ 395 0294               
+ 396 0294 1500FFF6		bne	$t0, $zero, bad_alive_cells_B_prompt_user_loop
+ 397 0298 1520FFF5		bne	$t1, $zero, bad_alive_cells_B_prompt_user_loop
+ 398 029c               
+ 399 029c               get_user_input_live_cell_locations_B:
+ 400 029c 34020004		li	$v0, PRINT_STRING
+ 401 02a0 3C040000		la	$a0, start_locations_prompt
+     02a4 34840000
+ 402 02a8 0000000C		syscall                 	# print start locations prompt
+ 403 02ac               
+ 404 02ac 34140000		li	$s4, 0             	# counter for the number of live cells
+ 405 02b0               
+ 406 02b0               get_user_input_live_cell_locations_B_loop:
+ 407 02b0               					# check if our collected number of
+ 408 02b0               					# cells is equal to the number of
+ 409 02b0               					# cells we want to collect
+ 410 02b0 0293482A		slt	$t1, $s4, $s3
+ 411 02b4 1120002D		beq	$t1, $zero, get_user_input_live_cell_locations_B_done
+ 412 02b8               
+ 413 02b8 34020005		li	$v0, READ_INT
+ 414 02bc 0000000C		syscall				# read row
+ 415 02c0 00404021		move	$t0, $v0		# store row in $t0
+ 416 02c4               
+ 417 02c4 34020005		li	$v0, READ_INT
+ 418 02c8 0000000C		syscall				# read column
+ 419 02cc 00404821		move	$t1, $v0		# store column in $t1
+ 420 02d0               
+ 421 02d0               validate_row_nonnegative_location_B:
+ 422 02d0 0100502A		slt	$t2, $t0, $zero		# verify that row is non-negative
+ 423 02d4               
+ 424 02d4               					# if so, continue checks, else
+ 425 02d4               					# terminate
+ 426 02d4 11400001		beq	$t2, $zero, check_row_within_board_B
+ 427 02d8 080000E2		j	invalid_location
+ 428 02dc               
+ 429 02dc               check_row_within_board_B:
+ 430 02dc               					# check that row index is less than
+ 431 02dc               					# board length
+ 432 02dc 0110502A		slt	$t2, $t0, $s0
+ 433 02e0               					# if so, continue checks, else
+ 434 02e0               					# terminate
+ 435 02e0 11400029		beq	$t2, $zero, invalid_location
+ 436 02e4 080000BA		j	validate_column_location_B
+ 437 02e8               
+ 438 02e8               validate_column_location_B:
+ 439 02e8 0120502A		slt	$t2, $t1, $zero		# verify that col is non-negative
+ 440 02ec               
+ 441 02ec               					# if so, continue checks, else
+ 442 02ec               					# terminate
+ 443 02ec 11400001		beq	$t2, $zero, check_column_within_board_B
+ 444 02f0 080000E2		j	invalid_location
+ 445 02f4               
+ 446 02f4               check_column_within_board_B:
+ 447 02f4               					# check that col index is less than
+ 448 02f4               					# board length
+ 449 02f4 0130502A		slt	$t2, $t1, $s0
+ 450 02f8               					# if so, continue checks, else
+ 451 02f8               					# terminate
+ 452 02f8 11400023		beq	$t2, $zero, invalid_location
+ 453 02fc               
+ 454 02fc               check_if_location_used_B:
+ 455 02fc 23BDFFF8	    addi    $sp, $sp, -8      		# Allocate stack space for 2 registers
+ 456 0300 AFA80000	    sw      $t0, 0($sp)       		# Save $t0 on the stack
+ 457 0304 AFA90004	    sw      $t1, 4($sp)       		# Save $t1 on the stack
+ 458 0308               
+ 459 0308 01002021	    move    $a0, $t0          		# Row to check
+ 460 030c 01202821	    move    $a1, $t1          		# Column to check
+ 461 0310 3C060000	    la      $a2, colony_A_block   	# Address of colony_A_block
+     0314 34C60000
+ 462 0318 3C070000	    la      $a3, colony_B_block   	# Address of colony_B_block
+     031c 34E70000
+ 463 0320               
+ 464 0320 0C000000	    jal     is_location_taken
+ 465 0324               
+ 466 0324 8FA80000	    lw      $t0, 0($sp)       		# Restore $t0
+ 467 0328 8FA90004	    lw      $t1, 4($sp)       		# Restore $t1
+ 468 032c 23BD0008	    addi    $sp, $sp, 8       		# Deallocate stack space
+ 469 0330               
+ 470 0330 14400015	    bne     $v0, $zero, invalid_location
+ 471 0334               
+ 472 0334               store_location_B:
+ 473 0334 3C0C0000		la	$t4, colony_B_block
+     0338 358C0000
+ 474 033c 8D8D0000		lw	$t5, 0($t4)		# Load address of rowArray_B
+ 475 0340 8D8E0004		lw	$t6, 4($t4)		# Load address of colArray_B
+ 476 0344               
+ 477 0344 34010004		mul	$t2, $s4, 4		# multiply $s4 by 4 to get the offset
+     0348 02810018
+     034c 00005012
+ 478 0350 01AA5820		add	$t3, $t5, $t2		# add the offset to the base address
+ 479 0354 01CA7820		add	$t7, $t6, $t2		# add the offset to the base address
+ 480 0358 AD680000		sw	$t0, 0($t3)		# store the row
+ 481 035c ADE90000		sw	$t1, 0($t7)		# store the column
+ 482 0360               
+ 483 0360 22940001		addi	$s4, $s4, 1		# increment the number of cells
+ 484 0364 AD940008		sw	$s4, 8($t4)		# store the number of cells
+ 485 0368               
+ 486 0368 080000AC		j	get_user_input_live_cell_locations_B_loop
+ 487 036c               
+ 488 036c               get_user_input_live_cell_locations_B_done:
+ 489 036c 3C050000		la	$a1, colony_A_block
+     0370 34A50000
+ 490 0374 3C060000		la	$a2, colony_B_block
+     0378 34C60000
+ 491 037c 02002021		move	$a0, $s0
+ 492 0380 0C000000		jal print_board
+ 493 0384               
+ 494 0384 080000E6		j main_done
+ 495 0388               
+ 496 0388               invalid_location:
+ 497 0388 34020004		li	$v0, PRINT_STRING	# print out illegal point statement
+ 498 038c 3C040000		la	$a0, illegal_point__location
+     0390 34840000
+ 499 0394 0000000C		syscall
+ 500 0398               
+ 501 0398               main_done:
+ 502 0398 8FBF0000		lw	$ra, 0($sp)
+ 503 039c 23BD0004		addi	$sp, $sp, 4
+ 504 03a0 03E00008		jr	$ra			# gracefuly return from program
+
+
+                  Name                     F  Value   M V Sect.                        References
+-----------------------------------------  - -------- - - ----- --------------------------------------------------------
+BOARDSIZE_LEGAL_MAX                          0000001E =         @   32
+BOARDSIZE_LEGAL_MIN                          00000004 =         @   31, 146
+GENERATION_LEGAL_MAX                         00000014 =         @   33, 191, 212
+PRINT_INT                                    00000001 =         @   30
+PRINT_STRING                                 00000004 =         @   28, 124, 136, 160, 179, 203, 227, 250, 268, 359, 382
+                                                                @  400, 497
+READ_INT                                     00000005 =         @   29, 140, 164, 183, 207, 231, 254, 281, 285, 363, 386
+                                                                @  413, 417
+alive_cells_A_prompt                         00000241 R   data  @   86, 228
+alive_cells_B_prompt                         0000026C R   data  @   89, 360
+bad_alive_cells_A_prompt_user_loop           00000140 R   text  @  244, 245, 249, 264, 265
+bad_alive_cells_B_prompt_user_loop           00000270 R   text  @  376, 377, 381, 396, 397
+bad_board_size_prompt_user_loop              0000006C R   text  @  154, 155, 159, 175, 176
+bad_generations_prompt_user_loop             000000D4 R   text  @  197, 198, 202, 218, 219
+board_size_prompt                            00000207 R   data  @   80, 137
+check_column_within_board                    000001C4 R   text  @  311, 314
+check_column_within_board_B                  000002F4 R   text  @  443, 446
+check_if_location_used                       000001CC R   text  @  322
+check_if_location_used_B                     000002FC R   text  @  454
+check_row_within_board                       000001AC R   text  @  294, 297
+check_row_within_board_B                     000002DC R   text  @  426, 429
+colArray_A                                   00000090 R   data  @   43,  54
+colArray_B                                   00000184 R   data  @   48,  63
+colonySize_A                                 00000108 R   data  @   57
+colonySize_B                                 000001FC R   data  @   66
+colony_A_block                               00000000 R   data  @   41, 128, 329, 341, 461, 489
+colony_B_block                               0000000C R   data  @   46, 131, 330, 462, 473, 490
+double_newline                               00000202 R   data  @   74
+generations_prompt                           0000021B R   data  @   83, 180
+get_total_number_cells_board                 00000104 R   text  @  200, 221
+get_user_input_alive_cells_A                 0000010C R   text  @  226
+get_user_input_alive_cells_B                 0000023C R   text  @  358
+get_user_input_board_size                    00000034 R   text  @  135
+get_user_input_generations                   0000009C R   text  @  157, 178
+get_user_input_live_cell_locations_A         0000016C R   text  @  247, 267
+get_user_input_live_cell_locations_A_done    0000023C R   text  @  279, 356
+get_user_input_live_cell_locations_A_loop    00000180 R   text  @  274, 354
+get_user_input_live_cell_locations_B         0000029C R   text  @  379, 399
+get_user_input_live_cell_locations_B_done    0000036C R   text  @  411, 488
+get_user_input_live_cell_locations_B_loop    000002B0 R   text  @  406, 486
+illegal_alive_cells                          00000311 R   data  @  101, 251, 383
+illegal_board_size_prompt                    000002B2 R   data  @   95, 161
+illegal_generations_prompt                   000002DC R   data  @   98, 204
+illegal_point__location                      00000345 R   data  @  104, 498
+invalid_location                             00000388 R   text  @  295, 303, 312, 320, 338, 427, 435, 444, 452, 470, 496
+
+is_location_taken                            ******** X G       @  117, 332, 464
+main                                         00000000 R G text  @  116, 120
+main_done                                    00000398 R   text  @  494, 501
+newline                                      00000200 R   data  @   71
+print_board                                  ******** X G       @  118, 492
+program_banner                               00000365 R   data  @  107, 125
+rowArray_A                                   00000018 R   data  @   42,  51
+rowArray_B                                   0000010C R   data  @   47,  60
+space                                        00000205 R   data  @   77
+start_locations_prompt                       00000297 R   data  @   92, 269, 401
+store_location_A                             00000204 R   text  @  340
+store_location_B                             00000334 R   text  @  472
+validate_column_location_A                   000001B8 R   text  @  304, 306
+validate_column_location_B                   000002E8 R   text  @  436, 438
+validate_row_nonnegative_location_A          000001A0 R   text  @  289
+validate_row_nonnegative_location_B          000002D0 R   text  @  421

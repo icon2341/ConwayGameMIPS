@@ -1,0 +1,122 @@
+   1 0000               #
+   2 0000               # FILE:         $File$
+   3 0000               # AUTHOR:       Ashar Rahman, RIT, 2023
+   4 0000               #               
+   5 0000               #
+   6 0000               # DESCRIPTION:
+   7 0000               #	This file contains the is_location_taken function that checks
+   8 0000               #	to see if the coordinate is available
+   9 0000               #
+  10 0000               
+  11 0000               #-------------------------------
+  12 0000               
+  13 0000               .globl is_location_taken
+  14 0000               
+  15 0000               #
+  16 0000               # Name:         is_location_taken
+  17 0000               # Description:  checks to see if the coordinate is available by running
+  18 0000               #		col and row arrays of both groups of cells to see if there
+  19 0000               #		is a match between the provided coordinates.
+  20 0000               #
+  21 0000               # Arguments:    a0:     index of row
+  22 0000               #               a1:     index of col
+  23 0000               #               a2:     a parameter block containing 3 values
+  24 0000               #			- the address of rowArray_A
+  25 0000               #			- the address of colArray_A
+  26 0000               #			- the address of the colonySize_A
+  27 0000               #               a3:     a parameter block containing 3 values
+  28 0000               #			- the address of rowArray_B
+  29 0000               #			- the address of colArray_B
+  30 0000               #			- the address of the colonySize_B
+  31 0000               # Returns:      $v0 - 0 if the location is not taken, 1 if it is
+  32 0000               # Destroys:     $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7
+  33 0000               #
+  34 0000               
+  35 0000               is_location_taken:
+  36 0000 23BDFFF4		addi	$sp, $sp, -12		# space on stack for three items
+  37 0004 AFBF0000		sw	$ra, 0($sp)		# Save return address
+  38 0008 AFB00004		sw	$s0, 4($sp)		# Save $s0
+  39 000c AFB10008		sw	$s1, 8($sp)		# Save $s1
+  40 0010               
+  41 0010 8CD00008		lw	$s0, 8($a2)		# Load colony A value
+  42 0014 8CC80000		lw	$t0, 0($a2)		# Load address of rowArray_A
+  43 0018 8CC90004		lw	$t1, 4($a2)		# Load address of colArray_A
+  44 001c               
+  45 001c 34110000		li	$s1, 0
+  46 0020               
+  47 0020               check_colony_A_loop:
+  48 0020 0230782A		slt	$t7, $s1, $s0
+  49 0024 11E0000B		beq	$t7, $zero, check_colony_B
+  50 0028               
+  51 0028 34010004		mul	$t2, $s1, 4		# Offset = index * 4
+     002c 02210018
+     0030 00005012
+  52 0034 010A6820		add	$t5, $t0, $t2		# Address of current row in colony A
+  53 0038 012A7020		add	$t6, $t1, $t2		# Address of current col in colony A
+  54 003c               
+  55 003c 8DAB0000		lw	$t3, 0($t5)
+  56 0040 8DCC0000		lw	$t4, 0($t6)
+  57 0044               
+  58 0044               					# if row matches, check col
+  59 0044 108B0002		beq	$a0, $t3, check_colony_A_columns_branch
+  60 0048 22310001		addi	$s1, $s1, 1
+  61 004c 08000008		j	check_colony_A_loop
+  62 0050               
+  63 0050               check_colony_A_columns_branch:
+  64 0050 10AC0013		beq	$a1, $t4, location_taken
+  65 0054               
+  66 0054               check_colony_B:
+  67 0054 8CF00008		lw	$s0, 8($a3)		# Load colony B size
+  68 0058 8CE80000		lw	$t0, 0($a3)		# Load address of rowArray_B
+  69 005c 8CE90004		lw	$t1, 4($a3)		# Load address of colArray_B
+  70 0060               
+  71 0060 34110000		li	$s1, 0
+  72 0064               
+  73 0064               check_colony_B_loop:
+  74 0064 0230782A		slt	$t7, $s1, $s0
+  75 0068 11E0000B		beq	$t7, $zero, location_not_taken
+  76 006c               
+  77 006c               					# Otherwise, continue
+  78 006c               
+  79 006c 34010004		mul	$t2, $s1, 4		# Offset = index * 4
+     0070 02210018
+     0074 00005012
+  80 0078 010A6820		add	$t5, $t0, $t2		# Address of current row colony B
+  81 007c 012A7020		add	$t6, $t1, $t2		# Address of current column colony B
+  82 0080               
+  83 0080 8DAB0000		lw	$t3, 0($t5)
+  84 0084 8DCC0000		lw	$t4, 0($t6)
+  85 0088               
+  86 0088 108B0002		beq	$a0, $t3, check_colony_B_columns_branch
+  87 008c 22310001		addi	$s1, $s1, 1
+  88 0090 08000019		j	check_colony_B_loop
+  89 0094               
+  90 0094               check_colony_B_columns_branch:
+  91 0094 10AC0002		beq	$a1, $t4, location_taken
+  92 0098               
+  93 0098               location_not_taken:
+  94 0098 34020000		li	$v0, 0
+  95 009c 08000029		j	return_from_subroutine
+  96 00a0               
+  97 00a0               location_taken:
+  98 00a0 34020001		li	$v0, 1
+  99 00a4               
+ 100 00a4               return_from_subroutine:
+ 101 00a4 8FBF0000		lw	$ra, 0($sp)		# Restore return address
+ 102 00a8 8FB00004		lw	$s0, 4($sp)		# Restore $s0
+ 103 00ac 8FB10008		lw	$s1, 8($sp)		# Restore $s1
+ 104 00b0 23BD000C		addi	$sp, $sp, 12		# Clean up stack
+ 105 00b4 03E00008		jr	$ra			# Return to caller
+
+
+            Name               F  Value   M V Sect.    References
+-----------------------------  - -------- - - ----- ----------------
+check_colony_A_columns_branch    00000050 R   text  @   59,  63
+check_colony_A_loop              00000020 R   text  @   47,  61
+check_colony_B                   00000054 R   text  @   49,  66
+check_colony_B_columns_branch    00000094 R   text  @   86,  90
+check_colony_B_loop              00000064 R   text  @   73,  88
+is_location_taken                00000000 R G text  @   13,  35
+location_not_taken               00000098 R   text  @   75,  93
+location_taken                   000000A0 R   text  @   64,  91,  97
+return_from_subroutine           000000A4 R   text  @   95, 100
